@@ -13,9 +13,9 @@ export async function searchImages(query, page = 1, perPage = 15) {
         'Sorry, there are no images matching your search query. Please try again!'
       );
     }
-    return response.data;
+    return response.data.hits;
   } catch (error) {
     console.log(error);
-    return { hits: [] };
+    return [];
   }
 }

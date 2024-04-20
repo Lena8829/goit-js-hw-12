@@ -1,6 +1,5 @@
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
-import axios from 'axios';
 
 import { searchImages } from './js/pixabay-api.js';
 import { renderImages } from './js/render-functions.js';
@@ -50,14 +49,14 @@ async function handleSubmit(event) {
   }
 }
 
-// hideLoader();
+hideLoader();
 
 //---------------------------------------------------------------------------------------
 // Функція для завантаження додаткових зображень
 async function loadMoreImages(query) {
   currentPage++; // Збільшуємо номер сторінки
 
-  loadMoreButton.disabled = true;
+  // loadMoreButton.disabled = true;
 
   try {
     const data = await searchImages(query, currentPage, perPage);
@@ -69,6 +68,9 @@ async function loadMoreImages(query) {
     console.log(error);
   }
 }
+
+//--------------------------------------------------------------------------------------
+
 loadMoreButton.addEventListener('click', () => {
   const query = searchInput.value.trim(); // Отримуємо значення поля вводу
   loadMoreImages(query); // Викликаємо функцію для завантаження додаткових зображень
@@ -92,8 +94,7 @@ function checkEndOfCollection(totalHits) {
   }
 }
 
-// Викликаємо функцію після відображення кожної нової порції зображень
-checkEndOfCollection(totalHits); // `totalHits` - загальна кількість зображень у відповіді від сервера
+checkEndOfCollection(totalHits);
 
 //----------------------------------------------------------------------------------------------
 
@@ -107,5 +108,4 @@ function smoothScroll() {
   window.scrollBy({ top: cardHeight * 2, behavior: 'smooth' });
 }
 
-// Викликаємо функцію для плавної прокрутки після завантаження нових зображень
 smoothScroll();
