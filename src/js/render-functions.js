@@ -1,9 +1,10 @@
 //*функції для відображення елементів інтерфейсу
 
-import SimpleLightbox from 'simplelightbox'; //
+import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const gallery = document.querySelector('.gallery');
+const lightbox = new SimpleLightbox('.gallery a');
 
 // відображення картинок---------------------------------------------------------------------
 export function renderImages(images) {
@@ -12,9 +13,7 @@ export function renderImages(images) {
   images.forEach(image => {
     const card = createImageCard(image); // створюєм  та добавляємо картку
 
-    card.addEventListener('click', () => {
-      openModal(image);
-    });
+    // card.addEventListener('click', () => openModal(image));
     gallery.appendChild(card);
   });
 }
@@ -55,8 +54,7 @@ function createImageCard(image) {
 }
 
 // відкриття великого зображення---------------------------------------------------------------
-export function openModal(image) {
-  const lightbox = new SimpleLightbox('.gallery a');
+function openModal(image) {
   lightbox.open();
   lightbox.refresh();
 }
