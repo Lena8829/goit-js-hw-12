@@ -9,103 +9,91 @@ import { renderImages } from './js/render-functions.js';
 const searchForm = document.querySelector('.search-form');
 const searchInput = document.querySelector('.search-input');
 const loader = document.querySelector('.loader');
-const loadMoreButton = document.querySelector('.load-more-btn');
-
+const backdrop = document.querySelector('.backdrop');
+const loadMoreBtn = document.querySelector('.load-more');
 //-------------------------------------------------------------------------------------------------
-let currentPage = 1;
-const perPage = 15;
 
 searchForm.addEventListener('submit', handleSubmit);
+loadMoreBtn.addEventListener('click', onClick);
 
-//--------------------------------------------------------------------------------------------------
+let page = 1;
+let query = null;
 
 async function handleSubmit(event) {
   event.preventDefault();
+  gallery.innerHTML = ''; // Очищуєм галерею перед додаванням нових зображ.
 
-  const query = searchInput.value.trim();
+  query = searchInput.value.trim();
   if (query === '') {
     return;
   }
 
-  showLoader();
+  loader.classList.remove('hidden');
+  backdrop.classList.remove('hidden');
 
   try {
-    const data = await searchImages(query, currentPage, perPage);
-    const images = data.hits;
-    // hideLoader();
+    const images = await searchImages(query, page);
+    if (images.hits.length === 0) {
+      iziToast.error({
+        title: 'Error',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topRight',
+        timeout: 5000,
+      });
+    } else {
+      renderImages(images.hits);
 
-    renderImages(images);
+      if (images.total >= 15) {
+        loadMoreBtn.classList.remove('hidden');
+      }
+    }
+
+    loader.classList.add('hidden');
+    backdrop.classList.add('hidden');
   } catch (error) {
     console.log(error);
+  }
 
-    iziToast.error({
-      title: 'Error',
-      message:
-        'Sorry, there are no images matching your search query. Please try again!',
-      position: 'topRight',
+  searchForm.reset();
+}
+
+async function onClick() {
+  loader.classList.remove('hidden');
+  backdrop.classList.remove('hidden');
+
+  page += 1;
+
+  try {
+    const images = await searchImages(query, page);
+    renderImages(images.hits);
+
+    //функція для скролу--------------
+
+    const { height: cardHeight } = document
+      .querySelector('.gallery')
+      .firstElementChild.getBoundingClientRect();
+
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
     });
-  } finally {
-    hideLoader();
-  }
-}
+    // -------------------------------------
+    loader.classList.add('hidden');
+    backdrop.classList.add('hidden');
 
-hideLoader();
+    const lastPage = Math.ceil(images.totalHits / 15);
 
-//---------------------------------------------------------------------------------------
-// Функція для завантаження додаткових зображень
-async function loadMoreImages(query) {
-  currentPage++; // Збільшуємо номер сторінки
+    if (lastPage === page) {
+      loadMoreBtn.classList.add('hidden');
 
-  // loadMoreButton.disabled = true;
-
-  try {
-    const data = await searchImages(query, currentPage, perPage);
-    const images = data.hits; // Отримуємо зображення з даних
-    renderImages(images); // Відображаємо зображення
-    checkEndOfCollection(data.totalHits);
-    smoothScroll();
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+        timeout: 5000,
+      });
+    }
   } catch (error) {
     console.log(error);
   }
 }
-
-//--------------------------------------------------------------------------------------
-
-loadMoreButton.addEventListener('click', () => {
-  const query = searchInput.value.trim(); // Отримуємо значення поля вводу
-  loadMoreImages(query); // Викликаємо функцію для завантаження додаткових зображень
-});
-
-//-----------------------------------------------------------------------------------------
-//показуєм індикатор
-function showLoader() {
-  loader.style.display = 'block';
-}
-//скриваємо індикатор
-function hideLoader() {
-  loader.style.display = 'none';
-}
-
-// Функція для перевірки кінця колекції та приховування кнопки "Load more"
-function checkEndOfCollection(totalHits) {
-  const totalLoaded = currentPage * perPage;
-  if (totalLoaded >= totalHits) {
-    loadMoreButton.style.display = 'none'; // Ховаємо кнопку
-  }
-}
-
-checkEndOfCollection(totalHits);
-
-//----------------------------------------------------------------------------------------------
-
-// Функція для плавної прокрутки сторінки
-function smoothScroll() {
-  // Отримуємо висоту однієї карточки зображення
-  const cardHeight = document
-    .querySelector('.card')
-    .getBoundingClientRect().height;
-  // Прокручуємо сторінку вниз на дві висоти карточки
-  window.scrollBy({ top: cardHeight * 2, behavior: 'smooth' });
-}
-
-smoothScroll();
